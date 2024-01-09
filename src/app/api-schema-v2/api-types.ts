@@ -1,13 +1,15 @@
 import { Observable } from 'rxjs';
 
+export type ApiHttpMethods = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
 /**
  * Api Params Type
  * */
 export type ApiParams = {
   url: string;
-  method: string;
-  data?: any;
-  params?: any;
+  method: ApiHttpMethods;
+  data?: Record<string, string | boolean | number>;
+  params?: Record<string, string | boolean | number>;
   config?: any;
 };
 

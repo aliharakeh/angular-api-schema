@@ -13,11 +13,13 @@ export type ApiEndpoint = {
 
 export type ApiParamsBuilder = (...args: any[]) => ApiParams | Observable<any>;
 
+export type ApiHttpMethods = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
 export type ApiParams = {
   url: string;
-  method: string;
-  data?: any;
-  params?: any;
+  method: ApiHttpMethods;
+  data?: Record<string, string | boolean | number>;
+  params?: Record<string, string | boolean | number>;
   config?: any;
 };
 

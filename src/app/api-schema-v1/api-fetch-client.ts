@@ -1,9 +1,10 @@
+import { typeCheck } from './api-types';
 import { APIs, DOMAIN } from './apis';
 
 /**
  * Proxy Handler
  */
-const createHandler = (parentObj: any) => ({
+const createHandler = (parentObj: any = null) => ({
   get(target: any, key: string, receiver: any) {
     if (key === 'constructor' || key.startsWith('ng')) {
       return target[key];
@@ -47,4 +48,4 @@ function constructHttpRequest(parentObj: any, target: any, key: string) {
 /**
  *  API Client
  *  */
-export const ApiClient = new Proxy(APIs, createHandler(null));
+export const ApiClient = new Proxy(typeCheck(APIs), createHandler());

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, InjectionToken } from '@angular/core';
 import { ApiService, typeCheck } from './api-types';
 import { APIs, DOMAIN } from './apis';
@@ -6,7 +6,7 @@ import { APIs, DOMAIN } from './apis';
 /**
  * Proxy Handler
  */
-const createHandler = (httpClient: HttpClient, parentObj: any) => ({
+const createHandler = (httpClient: HttpClient, parentObj: any = null) => ({
   get(target: any, key: string, receiver: any) {
     if (key === 'constructor' || key.startsWith('ng')) {
       return target[key];
@@ -30,19 +30,20 @@ function constructHttpRequest(httpClient: HttpClient, parentObj: any, target: an
   let { url, method, params, data, config } = target[key]();
   url = DOMAIN + parentObj.baseUrl + url;
   data = data || {};
-  params = { params };
+  params = new HttpParams({ fromObject: params });
+  const options = { params, ...config };
   return () => {
     switch (method.toLowerCase()) {
       case 'get':
-        return httpClient.get(url, params);
+        return httpClient.get(url, options);
       case 'post':
-        return httpClient.post(url, data, config);
+        return httpClient.post(url, data, options);
       case 'put':
-        return httpClient.put(url, data, config);
+        return httpClient.put(url, data, options);
       case 'delete':
-        return httpClient.delete(url, params);
+        return httpClient.delete(url, options);
       default:
-        return httpClient.get(url, params);
+        return httpClient.get(url, options);
     }
   };
 }
@@ -54,6 +55,6 @@ export const ApiClient = new InjectionToken<ApiService>('APIS', {
   providedIn: 'root',
   factory: () => {
     const http = inject(HttpClient);
-    return new Proxy(typeCheck(APIs), createHandler(http, null));
+    return new Proxy(typeCheck(APIs), createHandler(http));
   }
 });
