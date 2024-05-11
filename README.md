@@ -4,12 +4,23 @@
 - Add Typings to help with IDE autocomplete
 - Auto generate api requests from provided config options
 
-## APi Schema v1 - Object Approach
+## API Schema v1 – Objects, Proxy, & TS Type Gymnastics
 
-- uses normal javascript objects to define api endpoints
-- provide typescript typings to help with autocomplete
+- use normal js objects to define api endpoints.
+- use proxy to generate api requests.
+- use type guards & nested types to shape the api type.
+- one final api object to be used in the app.
 
-# Api Schema v2 - Class Approach
+# API Schema v2 – Class & Proxy Approach
 
-- uses js classes to define api endpoints
-- provide better typing support through the typed classes
+- use classes to define api endpoints.
+- use proxy to generate api requests.
+- better typing support through the typed classes.
+- one final api object to be used in the app.
+
+# API Schema v3 – Functional Approach
+
+- use functions to define api endpoints.
+- separate function for different http methods.
+- generic typing & clear separation of input/output types (params/body & response).
+- split api collections into separate api objects.
