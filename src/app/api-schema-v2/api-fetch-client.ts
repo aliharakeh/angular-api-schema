@@ -40,7 +40,7 @@ function constructHttpRequest(parentObj: any, target: any, key: string) {
     options['body'] = JSON.stringify(data);
   }
   return () => {
-    return fetch(url).then(res => res.json());
+    return fetch(url, options).then(res => res.json());
   };
 }
 

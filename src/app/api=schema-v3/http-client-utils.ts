@@ -2,6 +2,8 @@ import { HttpClient, HttpContext, HttpHeaders, HttpParams } from '@angular/commo
 import { inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
+export const DOMAIN = 'https://example.com/';
+
 export type HttpRequestOptions = {
   headers?: HttpHeaders | Record<string, string | string[]>;
   context?: HttpContext;
@@ -13,19 +15,31 @@ export type HttpRequestOptions = {
   transferCache?: { includeHeaders?: string[]; } | boolean;
 }
 
-export const DOMAIN = 'https://example.com/';
-
-export function GET<R, T = any>(url: string) {
+export function GET<T = any>(url: string) {
   APIClient.assertHttpClient();
-  return (params?: T, options: HttpRequestOptions = {}) => {
+  return <R>(params?: T, options: HttpRequestOptions = {}) => {
     return APIClient.GET(DOMAIN + url, getHttpOptions(params, options)) as Observable<R>;
   };
 }
 
-export function POST<R, B = any, T = any>(url: string) {
+export function POST<B = any, T = any>(url: string) {
   APIClient.assertHttpClient();
-  return (body?: B, params?: T, options: HttpRequestOptions = {}) => {
+  return <R>(body?: B, params?: T, options: HttpRequestOptions = {}) => {
     return APIClient.POST(DOMAIN + url, body || {}, getHttpOptions(params, options)) as Observable<R>;
+  };
+}
+
+export function PUT<B = any, T = any>(url: string) {
+  APIClient.assertHttpClient();
+  return <R>(body?: B, params?: T, options: HttpRequestOptions = {}) => {
+    return APIClient.PUT(DOMAIN + url, body || {}, getHttpOptions(params, options)) as Observable<R>;
+  };
+}
+
+export function DELETE<T = any>(url: string) {
+  APIClient.assertHttpClient();
+  return <R>(params?: T, options: HttpRequestOptions = {}) => {
+    return APIClient.DELETE(DOMAIN + url, getHttpOptions(params, options)) as Observable<R>;
   };
 }
 
@@ -34,6 +48,8 @@ class APIClient {
 
   static GET: HttpClient['get'];
   static POST: HttpClient['post'];
+  static PUT: HttpClient['put'];
+  static DELETE: HttpClient['delete'];
 
   static assertHttpClient() {
     if (!APIClient.#http) {
@@ -41,6 +57,8 @@ class APIClient {
       APIClient.#http = httpClient;
       APIClient.GET = httpClient.get.bind(httpClient);
       APIClient.POST = httpClient.post.bind(httpClient);
+      APIClient.PUT = httpClient.put.bind(httpClient);
+      APIClient.DELETE = httpClient.delete.bind(httpClient);
     }
   }
 }
