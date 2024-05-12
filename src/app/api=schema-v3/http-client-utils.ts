@@ -1,10 +1,12 @@
 import { HttpClient, HttpContext, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 
 export const DOMAIN = 'https://example.com/';
 
-export type HttpRequestOptions = {
+export type ClassInstance = new(...args: any[]) => any;
+
+export type HttpClientOptions = {
   headers?: HttpHeaders | Record<string, string | string[]>;
   context?: HttpContext;
   observe?: 'body' | 'events' | 'response';
@@ -15,31 +17,44 @@ export type HttpRequestOptions = {
   transferCache?: { includeHeaders?: string[]; } | boolean;
 }
 
-export function GET<T = any>(url: string) {
+export type HttpResultOptions = {
+  mapTo?: ClassInstance;
+  valueOnError?: any;
+}
+
+export function GET<T = any>(url: string, options: HttpClientOptions & HttpResultOptions = {}) {
   APIClient.assertHttpClient();
-  return <R>(params?: T, options: HttpRequestOptions = {}) => {
-    return APIClient.GET(DOMAIN + url, getHttpOptions(params, options)) as Observable<R>;
+  const config = separateHttpOptions(options);
+  return <R>(params?: T) => {
+    return APIClient.GET(DOMAIN + url, getHttpOptions(params, config.httpOptions))
+                    .pipe(...getRxjsOperators(config.resultOptions)) as Observable<R>;
   };
 }
 
-export function POST<B = any, T = any>(url: string) {
+export function POST<B = any, T = any>(url: string, options: HttpClientOptions & HttpResultOptions = {}) {
   APIClient.assertHttpClient();
-  return <R>(body?: B, params?: T, options: HttpRequestOptions = {}) => {
-    return APIClient.POST(DOMAIN + url, body || {}, getHttpOptions(params, options)) as Observable<R>;
+  const config = separateHttpOptions(options);
+  return <R>(body?: B, params?: T) => {
+    return APIClient.POST(DOMAIN + url, body || {}, getHttpOptions(params, config.httpOptions))
+                    .pipe(...getRxjsOperators(config.resultOptions)) as Observable<R>;
   };
 }
 
-export function PUT<B = any, T = any>(url: string) {
+export function PUT<B = any, T = any>(url: string, options: HttpClientOptions & HttpResultOptions = {}) {
   APIClient.assertHttpClient();
-  return <R>(body?: B, params?: T, options: HttpRequestOptions = {}) => {
-    return APIClient.PUT(DOMAIN + url, body || {}, getHttpOptions(params, options)) as Observable<R>;
+  const config = separateHttpOptions(options);
+  return <R>(body?: B, params?: T) => {
+    return APIClient.PUT(DOMAIN + url, body || {}, getHttpOptions(params, config.httpOptions))
+                    .pipe(...getRxjsOperators(config.resultOptions)) as Observable<R>;
   };
 }
 
-export function DELETE<T = any>(url: string) {
+export function DELETE<T = any>(url: string, options: HttpClientOptions & HttpResultOptions = {}) {
   APIClient.assertHttpClient();
-  return <R>(params?: T, options: HttpRequestOptions = {}) => {
-    return APIClient.DELETE(DOMAIN + url, getHttpOptions(params, options)) as Observable<R>;
+  const config = separateHttpOptions(options);
+  return <R>(params?: T) => {
+    return APIClient.DELETE(DOMAIN + url, getHttpOptions(params, config.httpOptions))
+                    .pipe(...getRxjsOperators(config.resultOptions)) as Observable<R>;
   };
 }
 
@@ -64,12 +79,41 @@ class APIClient {
 }
 
 function getHttpParams(params?: any) {
-  if (!params) {
-    return {};
-  }
-  return new HttpParams({ fromObject: params });
+  return params ? new HttpParams({ fromObject: params }) : {};
 }
 
-function getHttpOptions(params?: any, options: HttpRequestOptions = {}) {
+function getHttpOptions(params?: any, options: HttpClientOptions = {}) {
   return { ...options, params: getHttpParams(params) } as any;
+}
+
+function separateHttpOptions(options: HttpClientOptions & HttpResultOptions) {
+  const { mapTo, valueOnError, ...httpOptions } = options;
+  return { httpOptions, resultOptions: { mapTo, valueOnError } };
+}
+
+function getRxjsOperators(options: HttpResultOptions = {}) {
+  const operators: any[] = [];
+  if (options.valueOnError) {
+    operators.push(catchError(() => of(options.valueOnError)));
+  }
+  if (options.mapTo) {
+    operators.push(
+      map(
+        res => Array.isArray(res) ?
+               res.map(r => mapToClass(options.mapTo, r)) :
+               mapToClass(options.mapTo, res)
+      )
+    );
+  }
+  return operators as []; // use as [] to fix spread operator (...) type issue in pipe
+}
+
+/*
+ * Maps a value to a class instance that
+ * works with both empty & data param class constructors
+ * */
+function mapToClass(classType: ClassInstance, value: any) {
+  const newInstance = new classType();
+  Object.assign(newInstance, value);
+  return newInstance;
 }

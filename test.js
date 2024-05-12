@@ -1,6 +1,19 @@
-const url = new URL('some-url', 'http://www.example.com/');
-url.search = new URLSearchParams({a: 1, b: 'b'}).toString();
+class A {
+  constructor(a) {
+    this.a = a;
+  }
+}
 
-console.log(url);
-console.log(url.search);
-console.log(url.toString());
+class B {
+  b = 2;
+}
+
+const a = new A(2);
+console.log('a =', a.a);
+Object.assign(a, {a: 1});
+console.log('a =', a.a);
+
+const b = new B({dfsfsdfsdfsd: 1});
+console.log('b =', b.b);
+Object.assign(b, {b: 1});
+console.log('b =', b.b);
