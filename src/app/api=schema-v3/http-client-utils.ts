@@ -28,13 +28,15 @@ export type HttpClientOptions = {
 
 export type HttpResultOptions = {
   /**
-   * map response to a class instance
-   * */
-  mapTo?: ClassInstance;
-  /**
-   * map response to a value
+   * map response to a value.
+   * runs before mapTo if defined
    * */
   mapBy?: (res: any) => any;
+  /**
+   * map response to a class instance.
+   * runs after mapBy if defined
+   * */
+  mapTo?: ClassInstance;
   /**
    * catch error & return a default value
    * */
