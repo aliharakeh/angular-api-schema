@@ -4,7 +4,8 @@ import { DELETE, GET, POST, PUT } from './http-client-utils';
 export const UsersApi = new InjectionToken('USERS_API', {
   providedIn: 'root',
   factory: () => {
-    const urlConfig = { domain: 'https://example.com', baseUrl: '/api', url: '/users' };
+    const domain = 'https://example.com';
+    const urlConfig = { baseUrl: `${domain}/api`, url: '/users' };
     const usersConfig = { mapTo: User, valueOnError: [] };
     const userConfig = { mapTo: User, valueOnError: null };
     return {

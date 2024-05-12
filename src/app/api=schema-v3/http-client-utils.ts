@@ -5,9 +5,14 @@ import { catchError, map, Observable, of } from 'rxjs';
 export type ClassInstance = new(...args: any[]) => any;
 
 export type HttpUrlOptions = {
+  /**
+   * request endpoint
+   * */
   url: string;
+  /**
+   * request base url
+   * */
   baseUrl?: string;
-  domain?: string;
 }
 
 export type HttpClientOptions = {
@@ -22,7 +27,17 @@ export type HttpClientOptions = {
 }
 
 export type HttpResultOptions = {
+  /**
+   * map response to a class instance
+   * */
   mapTo?: ClassInstance;
+  /**
+   * map response to a value
+   * */
+  mapBy?: (res: any) => any;
+  /**
+   * catch error & return a default value
+   * */
   valueOnError?: any;
 }
 
@@ -64,6 +79,9 @@ export function DELETE<T = any>(options: FullHttpOptions) {
   };
 }
 
+/**
+ * API Client class that provides a singleton instance of the http client.
+ * */
 class APIClient {
   static #http: HttpClient;
 
@@ -85,8 +103,8 @@ class APIClient {
 }
 
 function separateHttpOptions(options: FullHttpOptions) {
-  const { mapTo, valueOnError, url, baseUrl, domain, ...httpOptions } = options;
-  return { httpOptions, resultOptions: { mapTo, valueOnError }, url: `${domain}${baseUrl}${url}` };
+  const { mapTo, valueOnError, url, baseUrl, ...httpOptions } = options;
+  return { httpOptions, resultOptions: { mapTo, valueOnError }, url: `${baseUrl}${url}` };
 }
 
 function getHttpOptions(params?: any, options: HttpClientOptions = {}) {
@@ -102,6 +120,11 @@ function getRxjsOperators(options: HttpResultOptions = {}) {
   if (options.valueOnError) {
     operators.push(catchError(() => of(options.valueOnError)));
   }
+  if (options.mapBy) {
+    operators.push(
+      map(options.mapBy)
+    );
+  }
   if (options.mapTo) {
     operators.push(
       map(
@@ -114,7 +137,7 @@ function getRxjsOperators(options: HttpResultOptions = {}) {
   return operators as []; // use as [] to fix spread operator (...) type issue in pipe
 }
 
-/*
+/**
  * Maps a value to a class instance that
  * works with both empty & data param class constructors
  * */
