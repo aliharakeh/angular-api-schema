@@ -2,9 +2,13 @@ import { HttpClient, HttpContext, HttpHeaders, HttpParams } from '@angular/commo
 import { inject } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 
-export const DOMAIN = 'https://example.com/';
-
 export type ClassInstance = new(...args: any[]) => any;
+
+export type HttpUrlOptions = {
+  url: string;
+  baseUrl?: string;
+  domain?: string;
+}
 
 export type HttpClientOptions = {
   headers?: HttpHeaders | Record<string, string | string[]>;
@@ -22,39 +26,41 @@ export type HttpResultOptions = {
   valueOnError?: any;
 }
 
-export function GET<T = any>(url: string, options: HttpClientOptions & HttpResultOptions = {}) {
+export type FullHttpOptions = HttpUrlOptions & HttpClientOptions & HttpResultOptions;
+
+export function GET<T = any>(options: FullHttpOptions) {
   APIClient.assertHttpClient();
-  const config = separateHttpOptions(options);
+  const { url, httpOptions, resultOptions } = separateHttpOptions(options);
   return <R>(params?: T) => {
-    return APIClient.GET(DOMAIN + url, getHttpOptions(params, config.httpOptions))
-                    .pipe(...getRxjsOperators(config.resultOptions)) as Observable<R>;
+    return APIClient.GET(url, getHttpOptions(params, httpOptions))
+                    .pipe(...getRxjsOperators(resultOptions)) as Observable<R>;
   };
 }
 
-export function POST<B = any, T = any>(url: string, options: HttpClientOptions & HttpResultOptions = {}) {
+export function POST<B = any, T = any>(options: FullHttpOptions) {
   APIClient.assertHttpClient();
-  const config = separateHttpOptions(options);
+  const { url, httpOptions, resultOptions } = separateHttpOptions(options);
   return <R>(body?: B, params?: T) => {
-    return APIClient.POST(DOMAIN + url, body || {}, getHttpOptions(params, config.httpOptions))
-                    .pipe(...getRxjsOperators(config.resultOptions)) as Observable<R>;
+    return APIClient.POST(url, body || {}, getHttpOptions(params, httpOptions))
+                    .pipe(...getRxjsOperators(resultOptions)) as Observable<R>;
   };
 }
 
-export function PUT<B = any, T = any>(url: string, options: HttpClientOptions & HttpResultOptions = {}) {
+export function PUT<B = any, T = any>(options: FullHttpOptions) {
   APIClient.assertHttpClient();
-  const config = separateHttpOptions(options);
+  const { url, httpOptions, resultOptions } = separateHttpOptions(options);
   return <R>(body?: B, params?: T) => {
-    return APIClient.PUT(DOMAIN + url, body || {}, getHttpOptions(params, config.httpOptions))
-                    .pipe(...getRxjsOperators(config.resultOptions)) as Observable<R>;
+    return APIClient.PUT(url, body || {}, getHttpOptions(params, httpOptions))
+                    .pipe(...getRxjsOperators(resultOptions)) as Observable<R>;
   };
 }
 
-export function DELETE<T = any>(url: string, options: HttpClientOptions & HttpResultOptions = {}) {
+export function DELETE<T = any>(options: FullHttpOptions) {
   APIClient.assertHttpClient();
-  const config = separateHttpOptions(options);
+  const { url, httpOptions, resultOptions } = separateHttpOptions(options);
   return <R>(params?: T) => {
-    return APIClient.DELETE(DOMAIN + url, getHttpOptions(params, config.httpOptions))
-                    .pipe(...getRxjsOperators(config.resultOptions)) as Observable<R>;
+    return APIClient.DELETE(url, getHttpOptions(params, httpOptions))
+                    .pipe(...getRxjsOperators(resultOptions)) as Observable<R>;
   };
 }
 
@@ -78,17 +84,17 @@ class APIClient {
   }
 }
 
-function getHttpParams(params?: any) {
-  return params ? new HttpParams({ fromObject: params }) : {};
+function separateHttpOptions(options: FullHttpOptions) {
+  const { mapTo, valueOnError, url, baseUrl, domain, ...httpOptions } = options;
+  return { httpOptions, resultOptions: { mapTo, valueOnError }, url: `${domain}${baseUrl}${url}` };
 }
 
 function getHttpOptions(params?: any, options: HttpClientOptions = {}) {
   return { ...options, params: getHttpParams(params) } as any;
 }
 
-function separateHttpOptions(options: HttpClientOptions & HttpResultOptions) {
-  const { mapTo, valueOnError, ...httpOptions } = options;
-  return { httpOptions, resultOptions: { mapTo, valueOnError } };
+function getHttpParams(params?: any) {
+  return params ? new HttpParams({ fromObject: params }) : {};
 }
 
 function getRxjsOperators(options: HttpResultOptions = {}) {
