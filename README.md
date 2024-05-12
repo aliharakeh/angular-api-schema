@@ -24,3 +24,4 @@
 - separate function for different http methods.
 - generic typing & clear separation of input/output types (params/body & response).
 - split api collections into separate api objects.
+- adds response mutations.
