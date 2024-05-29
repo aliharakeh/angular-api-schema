@@ -28,19 +28,21 @@ export type HttpClientOptions = {
 
 export type HttpResultOptions = {
   /**
-   * map response to a value.
-   * runs before mapTo if defined
+   * pick what response field to extract
    * */
-  mapBy?: (res: any) => any;
+  pick?: string;
   /**
    * map response to a class instance.
-   * runs after mapBy if defined
    * */
   mapTo?: ClassInstance;
   /**
    * catch error & return a default value
    * */
   valueOnError?: any;
+  /*
+   * pipe operators to apply to the response
+   * */
+  pipe?: any[];
 }
 
 export type FullHttpOptions = HttpUrlOptions & HttpClientOptions & HttpResultOptions;
@@ -122,10 +124,8 @@ function getRxjsOperators(options: HttpResultOptions = {}) {
   if (options.valueOnError) {
     operators.push(catchError(() => of(options.valueOnError)));
   }
-  if (options.mapBy) {
-    operators.push(
-      map(options.mapBy)
-    );
+  if (options.pick) {
+    operators.push(map(res => res[options.pick]));
   }
   if (options.mapTo) {
     operators.push(
@@ -135,6 +135,9 @@ function getRxjsOperators(options: HttpResultOptions = {}) {
                mapToClass(options.mapTo, res)
       )
     );
+  }
+  if (options.pipe) {
+    operators.push(...options.pipe);
   }
   return operators as []; // use as [] to fix spread operator (...) type issue in pipe
 }
