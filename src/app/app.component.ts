@@ -3,7 +3,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ApiClient as ApiCLientV1 } from './api-schema-v1/api-angular-client';
 import { ApiClient as ApiCLientV2 } from './api-schema-v2/api-angular-client';
-import { UsersApi } from './api=schema-v3/user-api';
+import { UsersApi } from './api-schema-v3/user-api';
 
 @Component({
   selector: 'app-root',
