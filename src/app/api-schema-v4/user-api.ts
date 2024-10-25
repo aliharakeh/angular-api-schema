@@ -1,6 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import { tap } from 'rxjs';
-import { createHttpResource, DELETE, GET, POST, PUT } from './http-client-utils';
+import { DELETE, GET, POST, PUT } from './http-client-utils';
 
 export const UsersApi = new InjectionToken('USERS_API', {
   providedIn: 'root',
@@ -10,37 +10,17 @@ export const UsersApi = new InjectionToken('USERS_API', {
     const usersConfig = { mapTo: User, valueOnError: [] };
     const userConfig = { mapTo: User, valueOnError: null };
     return {
-      /*
-       * TODO:
-       * - the params types are not propagated to the outside
-       * - one function is not enough for both body & params so we need the resurce to be internal to the http
-       * function.
-       * */
-      getUsers: createHttpResource(({ request }) => GET<UsersParams, User[]>({
-        params: request,
-        options: {
-          ...urlConfig,
-          ...usersConfig,
-          pipe: [
-            tap((res: User[]) => res.forEach(u => u.isActive = true))
-          ]
-        }
-      })),
-      getUserById: createHttpResource(({ request }) => GET<{
-        id: number
-      }, User>({ params: request, options: { ...urlConfig, ...userConfig } })),
-      createUser: createHttpResource(({ request }) => POST<UserBody, User>({
-        params: request,
-        options: { ...urlConfig, ...userConfig }
-      })),
-      updateUser: createHttpResource(({ request }) => PUT<UserBody, User>({
-        params: request,
-        options: { ...urlConfig, ...userConfig }
-      })),
-      deleteUser: createHttpResource(({ request }) => DELETE({
-        params: request,
-        options: urlConfig
-      }))
+      getUsers: GET<UsersParams>({
+        ...urlConfig,
+        ...usersConfig,
+        pipe: [
+          tap((res: User[]) => res.forEach(u => u.isActive = true))
+        ]
+      })<User[]>,
+      getUserById: GET<{ id: number }>({ ...urlConfig, ...userConfig })<User>,
+      createUser: POST<UserBody>({ ...urlConfig, ...userConfig })<User>,
+      updateUser: PUT<UserBody>({ ...urlConfig, ...userConfig })<User>,
+      deleteUser: DELETE(urlConfig)
     };
   }
 });

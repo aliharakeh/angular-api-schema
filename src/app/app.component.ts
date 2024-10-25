@@ -17,9 +17,9 @@ export class AppComponent implements OnInit {
   public api_v3 = inject(UsersApiV3);
   public api_v4 = inject(UsersApiV4);
 
-  readonly someSignalDataV4 = signal(1);
+  readonly page = signal(0);
 
-  readonly getUsersV4 = this.api_v4.getUsers(this.someSignalDataV4);
+  readonly getUsersV4 = this.api_v4.getUsers(() => ({ page: this.page() }));
 
   ngOnInit() {
     console.log(this.api_v1.users.getUsers); // error: getUsers is not a function

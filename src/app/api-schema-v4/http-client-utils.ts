@@ -48,36 +48,55 @@ export type HttpResultOptions = {
 
 export type FullHttpOptions = HttpUrlOptions & HttpClientOptions & HttpResultOptions;
 
-export function GET<T = any, R = any>(request: { params?: T, options: FullHttpOptions }) {
+export const DEFAULT_GET_PARAMS_FN = () => undefined;
+export const DEFAULT_POST_PARAMS_FN = () => ({ body: undefined, params: undefined });
+
+export function GET<T = any>(options: FullHttpOptions) {
   APIClient.assertHttpClient();
-  const { url, httpOptions, resultOptions } = separateHttpOptions(request.options);
-  return APIClient.GET(url, getHttpOptions(request.params, httpOptions))
-                  .pipe(...getRxjsOperators(resultOptions)) as Observable<R>;
+  const { url, httpOptions, resultOptions } = separateHttpOptions(options);
+  return <R>(paramsFn: () => T = DEFAULT_GET_PARAMS_FN) => {
+    return rxResource({
+      request: paramsFn,
+      loader: ({ request: params }) => APIClient.GET(url, getHttpOptions(params, httpOptions))
+                                                .pipe(...getRxjsOperators(resultOptions)) as Observable<R>
+    });
+  };
 }
 
-export function POST<B = any, T = any, R = any>(request: { body?: B, params?: T, options: FullHttpOptions }) {
+export function POST<B = any, T = any>(options: FullHttpOptions) {
   APIClient.assertHttpClient();
-  const { url, httpOptions, resultOptions } = separateHttpOptions(request.options);
-  return APIClient.POST(url, request.body || {}, getHttpOptions(request.params, httpOptions))
-                  .pipe(...getRxjsOperators(resultOptions)) as Observable<R>;
+  const { url, httpOptions, resultOptions } = separateHttpOptions(options);
+  return <R>(paramsFn: () => { body?: B, params?: T } = DEFAULT_POST_PARAMS_FN) => {
+    return rxResource({
+      request: paramsFn,
+      loader: ({ request: { body, params } }) => APIClient.POST(url, body ?? {}, getHttpOptions(params, httpOptions))
+                                                          .pipe(...getRxjsOperators(resultOptions)) as Observable<R>
+    });
+  };
 }
 
-export function PUT<B = any, T = any, R = any>(request: { body?: B, params?: T, options: FullHttpOptions }) {
+export function PUT<B = any, T = any>(options: FullHttpOptions) {
   APIClient.assertHttpClient();
-  const { url, httpOptions, resultOptions } = separateHttpOptions(request.options);
-  return APIClient.PUT(url, request.body || {}, getHttpOptions(request.params, httpOptions))
-                  .pipe(...getRxjsOperators(resultOptions)) as Observable<R>;
+  const { url, httpOptions, resultOptions } = separateHttpOptions(options);
+  return <R>(paramsFn: () => { body?: B, params?: T } = DEFAULT_POST_PARAMS_FN) => {
+    return rxResource({
+      request: paramsFn,
+      loader: ({ request: { body, params } }) => APIClient.PUT(url, body ?? {}, getHttpOptions(params, httpOptions))
+                                                          .pipe(...getRxjsOperators(resultOptions)) as Observable<R>
+    });
+  };
 }
 
-export function DELETE<T = any, R = any>(request: { params?: T, options: FullHttpOptions }) {
+export function DELETE<T = any>(options: FullHttpOptions) {
   APIClient.assertHttpClient();
-  const { url, httpOptions, resultOptions } = separateHttpOptions(request.options);
-  return APIClient.DELETE(url, getHttpOptions(request.params, httpOptions))
-                  .pipe(...getRxjsOperators(resultOptions)) as Observable<R>;
-}
-
-export function createHttpResource<T = any, R = any>(loader: (params: any) => Observable<any>) {
-  return (request: () => any) => rxResource<T, R>({ request, loader });
+  const { url, httpOptions, resultOptions } = separateHttpOptions(options);
+  return <R>(paramsFn: () => T = DEFAULT_GET_PARAMS_FN) => {
+    return rxResource({
+      request: paramsFn,
+      loader: ({ request: params }) => APIClient.DELETE(url, getHttpOptions(params, httpOptions))
+                                                .pipe(...getRxjsOperators(resultOptions)) as Observable<R>
+    });
+  };
 }
 
 /**
