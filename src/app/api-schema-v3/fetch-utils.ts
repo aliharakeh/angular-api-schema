@@ -1,4 +1,4 @@
-export const DOMAIN = 'https://example.com/';
+export const DOMAIN = 'https://jsonplaceholder.typicode.com/';
 
 export type ClassInstance = new(...args: any[]) => any;
 

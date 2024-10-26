@@ -1,24 +1,18 @@
 import { createRequest } from './api-types';
 
-export const DOMAIN = 'https://example.com';
+export const DOMAIN = 'https://jsonplaceholder.typicode.com';
 
 export const APIs = {
-  users: {
-    baseUrl: '/api/users',
+  posts: {
+    baseUrl: '/posts',
     requests: {
-      getUsers: () => createRequest<string>({
-        url: '/getAllUsers',
+      getPosts: () => createRequest<string>({
+        url: '',
         method: 'GET'
-      })
-    }
-  },
-  admin: {
-    baseUrl: '/api/admin',
-    requests: {
-      getUsers: (params: any) => createRequest<boolean>({
-        url: '/getAllAdmins',
-        method: 'GET',
-        params
+      }),
+      getPostById: (id: string) => createRequest<string>({
+        url: '/' + id,
+        method: 'GET'
       })
     }
   }
