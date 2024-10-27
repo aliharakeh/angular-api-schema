@@ -4,13 +4,12 @@ export class PostsRequests {
   baseUrl = '/posts';
 
   getPosts = () => createRequest<any>({
-    url: '/',
+    url: '',
     method: 'GET'
   });
 
-  getPostById = (id: string) => createRequest<any>({
+  getPostById = (id: number) => createRequest<any>({
     url: '/' + id,
     method: 'GET'
   });
-
 }

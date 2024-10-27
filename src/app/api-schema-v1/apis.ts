@@ -10,7 +10,7 @@ export const APIs = {
         url: '',
         method: 'GET'
       }),
-      getPostById: (id: string) => createRequest<string>({
+      getPostById: (id: number) => createRequest<string>({
         url: '/' + id,
         method: 'GET'
       })

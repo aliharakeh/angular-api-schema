@@ -34,19 +34,24 @@ export class AppComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      this.updateLogs(this.getPostsV4.value(), 'API V4');
+      if (this.getPostsV4.hasValue()) {
+        this.updateLogs(this.getPostsV4.value(), 'API V4');
+      }
     });
   }
 
   ngOnInit() {
-    // api_v1 - error: getUsers is not a function
-    // this.api_v1.posts.getPosts().subscribe(data => this.updateLogs(data, 'API V`'));
+    // api_v1
+    this.api_v1.posts.getPosts().subscribe(data => this.updateLogs(data, 'API V1 - getPosts'));
+    this.api_v1.posts.getPostById(1).subscribe(data => this.updateLogs(data, 'API V1 - getPostById'));
 
-    // api_v2 - error: doesn't work
-    // this.api_v2.posts.getPosts().subscribe(data => this.updateLogs(data, 'API V2'));
+    // api_v2
+    this.api_v2.posts.getPosts().subscribe(data => this.updateLogs(data, 'API V2 - getPosts'));
+    this.api_v2.posts.getPostById(1).subscribe(data => this.updateLogs(data, 'API V2 - getPostById'));
 
     // api_v3
-    this.api_v3.getPosts({}).subscribe(data => this.updateLogs(data, 'API V3'));
+    this.api_v3.getPosts().subscribe(data => this.updateLogs(data, 'API V3 - getPosts'));
+    this.api_v3.getPostById({ id: 1 }).subscribe(data => this.updateLogs(data, 'API V3 - getPostById'));
 
     // api_v4
     setTimeout(() => {

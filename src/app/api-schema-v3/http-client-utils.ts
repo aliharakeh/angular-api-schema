@@ -106,6 +106,7 @@ function httpRequest(
   options: FullHttpOptions,
   params: any
 ) {
+  params = params ?? {};
   const { url, baseUrl, pathParams, httpOptions, resultOptions } = separateHttpOptions(options);
   const request_url = getUrl(url, baseUrl(), params, pathParams);
   const request_options = getHttpOptions(params, pathParams, httpOptions);
@@ -119,6 +120,7 @@ function httpBodyRequest(
   params: any,
   body: any
 ) {
+  params = params ?? {};
   const { url, baseUrl, pathParams, httpOptions, resultOptions } = separateHttpOptions(options);
   const request_url = getUrl(url, baseUrl(), params, pathParams);
   const request_body = getBodyData(body, options.bodyType);

@@ -8,7 +8,7 @@ export const PostsApi = new InjectionToken('POSTS_API', {
     const domain = 'https://jsonplaceholder.typicode.com';
     const urlConfig = { baseUrl: () => domain, url: () => '/posts' };
     return {
-      getPosts: GET<PostData>({
+      getPosts: GET<PostData | void>({
         ...urlConfig,
         mapTo: Post,
         valueOnError: []
