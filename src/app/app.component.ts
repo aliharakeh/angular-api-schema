@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, effect, inject, OnInit, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { ApiClient as PostsApiV1 } from './api-schema-v1/api-angular-client';
 import { ApiClient as PostsApiV2 } from './api-schema-v2/api-angular-client';
 import { PostsApi as PostsApiV3 } from './api-schema-v3/posts-api';
-import { PostsApi as PostsApiV4 } from './api-schema-v4/posts-api';
 import { Post } from './app.models';
 
 @Component({
@@ -24,18 +24,20 @@ export class AppComponent implements OnInit {
   public api_v1 = inject(PostsApiV1);
   public api_v2 = inject(PostsApiV2);
   public api_v3 = inject(PostsApiV3);
-  public api_v4 = inject(PostsApiV4);
 
   readonly logs = signal<string[]>([]);
 
-  // api_v4
-  readonly filter = signal(null);
-  readonly getPostsV4 = this.api_v4.getPosts(this.filter); // called on init
+  // api_v3 resource
+  readonly filter = signal(undefined);
+  readonly getPostsResource = rxResource({
+    request: () => this.filter(), // undefined == no initial load
+    loader: ({ request: params }) => this.api_v3.getPosts(params)
+  });
 
   constructor() {
     effect(() => {
-      if (this.getPostsV4.hasValue()) {
-        this.updateLogs(this.getPostsV4.value(), 'API V4');
+      if (this.getPostsResource.hasValue()) {
+        this.updateLogs(this.getPostsResource.value(), 'API V3 Resource - getPosts');
       }
     });
   }
@@ -53,7 +55,7 @@ export class AppComponent implements OnInit {
     this.api_v3.getPosts().subscribe(data => this.updateLogs(data, 'API V3 - getPosts'));
     this.api_v3.getPostById({ id: 1 }).subscribe(data => this.updateLogs(data, 'API V3 - getPostById'));
 
-    // api_v4
+    // api_v3 resource
     setTimeout(() => {
       this.filter.set({ userId: 1 }); // will refresh the request with the new params
     }, 1000);
