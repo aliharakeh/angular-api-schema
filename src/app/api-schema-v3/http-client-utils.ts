@@ -1,4 +1,9 @@
-import { HttpClient, HttpContext, HttpHeaders, HttpParams } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpContext,
+  HttpHeaders,
+  HttpParams,
+} from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -55,63 +60,74 @@ export type HttpResultOptions = {
   pipe?: any[];
 };
 
-export type FullHttpOptions = HttpUrlOptions & HttpClientOptions & HttpResultOptions;
-export type ExtendedFullHttpOptions = FullHttpOptions & { bodyType?: 'json' | 'form-data' };
+export type FullHttpOptions = HttpUrlOptions &
+  HttpClientOptions &
+  HttpResultOptions;
+export type ExtendedFullHttpOptions = FullHttpOptions & {
+  bodyType?: 'json' | 'form-data';
+};
 
-export function GET<T = void>(options: FullHttpOptions) {
-  APIClient.assertHttpClient();
-  return <R = any>(params: T) => httpRequest(APIClient.GET, options, params) as Observable<R>;
-}
+export function injectHttpHelpers() {
+  const httpClient = inject(HttpClient);
 
-export function POST<B = void, T = void>(options: ExtendedFullHttpOptions) {
-  APIClient.assertHttpClient();
-  return <R = any>(body: B, params: T) => httpBodyRequest(APIClient.POST, options, params, body) as Observable<R>;
-}
-
-export function PUT<B = void, T = void>(options: ExtendedFullHttpOptions) {
-  APIClient.assertHttpClient();
-  return <R = any>(body: B, params: T) => httpBodyRequest(APIClient.PUT, options, params, body) as Observable<R>;
-}
-
-export function DELETE<T = void>(options: FullHttpOptions) {
-  APIClient.assertHttpClient();
-  return <R = any>(params: T) => httpRequest(APIClient.DELETE, options, params) as Observable<R>;
-}
-
-/**
- * API Client class that provides a singleton instance of the http client.
- * */
-class APIClient {
-  static #http: HttpClient;
-
-  static GET: HttpClient['get'];
-  static POST: HttpClient['post'];
-  static PUT: HttpClient['put'];
-  static DELETE: HttpClient['delete'];
-
-  static assertHttpClient() {
-    if (!APIClient.#http) {
-      const httpClient = inject(HttpClient);
-      APIClient.#http = httpClient;
-      APIClient.GET = httpClient.get.bind(httpClient);
-      APIClient.POST = httpClient.post.bind(httpClient);
-      APIClient.PUT = httpClient.put.bind(httpClient);
-      APIClient.DELETE = httpClient.delete.bind(httpClient);
-    }
+  function GET<T = void>(options: FullHttpOptions) {
+    return <R = any>(params: T) =>
+      httpRequest(
+        httpClient.get.bind(httpClient),
+        options,
+        params
+      ) as Observable<R>;
   }
+
+  function POST<B = void, T = void>(options: ExtendedFullHttpOptions) {
+    return <R = any>(body: B, params: T) =>
+      httpBodyRequest(
+        httpClient.post.bind(httpClient),
+        options,
+        params,
+        body
+      ) as Observable<R>;
+  }
+
+  function PUT<B = void, T = void>(options: ExtendedFullHttpOptions) {
+    return <R = any>(body: B, params: T) =>
+      httpBodyRequest(
+        httpClient.put.bind(httpClient),
+        options,
+        params,
+        body
+      ) as Observable<R>;
+  }
+
+  function DELETE<T = void>(options: FullHttpOptions) {
+    return <R = any>(params: T) =>
+      httpRequest(
+        httpClient.delete.bind(httpClient),
+        options,
+        params
+      ) as Observable<R>;
+  }
+
+  return {
+    GET,
+    POST,
+    PUT,
+    DELETE,
+  };
 }
 
 function httpRequest(
-  httpRequest: (...args: any) => Observable<any>,
+  httpMethod: (...args: any) => Observable<any>,
   options: FullHttpOptions,
   params: any
 ) {
   params = params ?? {};
-  const { url, baseUrl, pathParams, httpOptions, resultOptions } = separateHttpOptions(options);
+  const { url, baseUrl, pathParams, httpOptions, resultOptions } =
+    separateHttpOptions(options);
   const request_url = getUrl(url, baseUrl(), params, pathParams);
   const request_options = getHttpOptions(params, pathParams, httpOptions);
   const rxOperators = getRxjsOperators(resultOptions);
-  return httpRequest(request_url, request_options).pipe(...rxOperators);
+  return httpMethod(request_url, request_options).pipe(...rxOperators);
 }
 
 function httpBodyRequest(
@@ -121,31 +137,58 @@ function httpBodyRequest(
   body: any
 ) {
   params = params ?? {};
-  const { url, baseUrl, pathParams, httpOptions, resultOptions } = separateHttpOptions(options);
+  const { url, baseUrl, pathParams, httpOptions, resultOptions } =
+    separateHttpOptions(options);
   const request_url = getUrl(url, baseUrl(), params, pathParams);
   const request_body = getBodyData(body, options.bodyType);
   const request_options = getHttpOptions(params, pathParams, httpOptions);
   const rxOperators = getRxjsOperators(resultOptions);
-  return httpRequest(request_url, request_body, request_options).pipe(...rxOperators);
+  return httpRequest(request_url, request_body, request_options).pipe(
+    ...rxOperators
+  );
 }
 
 function separateHttpOptions(options: FullHttpOptions) {
-  const { mapTo, valueOnError, pipe, pick, url, baseUrl, pathParams, ...httpOptions } = options;
+  const {
+    mapTo,
+    valueOnError,
+    pipe,
+    pick,
+    url,
+    baseUrl,
+    pathParams,
+    ...httpOptions
+  } = options;
   return {
     httpOptions,
     resultOptions: { mapTo, valueOnError, pipe, pick },
     url: url,
     baseUrl: baseUrl || (() => ''),
-    pathParams: pathParams || []
+    pathParams: pathParams || [],
   };
 }
 
-function getUrl(url: string | Function, baseUrl: string, params: any, pathParams: string[]) {
-  return baseUrl + (typeof url === 'string' ? url : url(...pathParams.map(p => params[p])));
+function getUrl(
+  url: string | Function,
+  baseUrl: string,
+  params: any,
+  pathParams: string[]
+) {
+  return (
+    baseUrl +
+    (typeof url === 'string' ? url : url(...pathParams.map((p) => params[p])))
+  );
 }
 
-function getHttpOptions(params: any, pathParams: string[], options: HttpClientOptions = {}) {
-  return { ...options, params: getHttpParams(params, pathParams, options.fixedParams) } as any;
+function getHttpOptions(
+  params: any,
+  pathParams: string[],
+  options: HttpClientOptions = {}
+) {
+  return {
+    ...options,
+    params: getHttpParams(params, pathParams, options.fixedParams),
+  } as any;
 }
 
 function getHttpParams(params: any, pathParams: string[], fixedParams: any) {
@@ -156,7 +199,7 @@ function getHttpParams(params: any, pathParams: string[], fixedParams: any) {
   }
   const paramsObj = { ...params, ...fixedParams };
   let httpParams = new HttpParams();
-  Object.keys(paramsObj).forEach(key => {
+  Object.keys(paramsObj).forEach((key) => {
     const value = paramsObj[key];
     httpParams = httpParams.set(key, value.toString());
   });
@@ -172,7 +215,7 @@ function getBodyData(data: any, type: 'json' | 'form-data') {
     return data;
   }
   const formData = new FormData();
-  Object.keys(data).forEach(key => {
+  Object.keys(data).forEach((key) => {
     formData.append(key, data[key]);
   });
   return formData;
@@ -186,7 +229,9 @@ function getRxjsOperators(options: HttpResultOptions = {}) {
     operators.push(
       map((res: any) => {
         if (!res || !Object.hasOwn(res, pick)) {
-          throw new Error(`'${pick}' is not a valid property of the response result`);
+          throw new Error(
+            `'${pick}' is not a valid property of the response result`
+          );
         }
         return res[pick];
       })
@@ -196,7 +241,7 @@ function getRxjsOperators(options: HttpResultOptions = {}) {
   if (valueOnError) {
     const errorValue = pick ? { [pick]: valueOnError } : valueOnError;
     operators.push(
-      catchError(err => {
+      catchError((err) => {
         console.error(err);
         return of(errorValue);
       })
@@ -205,8 +250,10 @@ function getRxjsOperators(options: HttpResultOptions = {}) {
 
   if (mapTo) {
     operators.push(
-      map(res =>
-        Array.isArray(res) ? res.map(r => mapToClass(mapTo, r)) : mapToClass(mapTo, res)
+      map((res) =>
+        Array.isArray(res)
+          ? res.map((r) => mapToClass(mapTo, r))
+          : mapToClass(mapTo, res)
       )
     );
   }
