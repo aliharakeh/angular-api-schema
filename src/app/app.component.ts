@@ -29,8 +29,8 @@ export class AppComponent implements OnInit {
   // api_v3 resource
   readonly filter = signal(undefined);
   readonly getPostsResource = rxResource({
-    request: () => this.filter(), // undefined == no initial load
-    loader: ({ request: params }) => this.api_v3.getPosts(params),
+    params: () => this.filter(), // undefined == no initial load
+    stream: ({ params }) => this.api_v3.getPosts(params),
   });
 
   constructor() {
