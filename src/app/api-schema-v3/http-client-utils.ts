@@ -47,10 +47,6 @@ export type HttpResultOptions = {
    * */
   pick?: string;
   /**
-   * map response to a class instance.
-   * */
-  mapTo?: ClassInstance;
-  /**
    * catch error & return a default value
    * */
   valueOnError?: any;
@@ -149,19 +145,11 @@ function httpBodyRequest(
 }
 
 function separateHttpOptions(options: FullHttpOptions) {
-  const {
-    mapTo,
-    valueOnError,
-    pipe,
-    pick,
-    url,
-    baseUrl,
-    pathParams,
-    ...httpOptions
-  } = options;
+  const { valueOnError, pipe, pick, url, baseUrl, pathParams, ...httpOptions } =
+    options;
   return {
     httpOptions,
-    resultOptions: { mapTo, valueOnError, pipe, pick },
+    resultOptions: { valueOnError, pipe, pick },
     url: url,
     baseUrl: baseUrl || (() => ''),
     pathParams: pathParams || [],
@@ -223,7 +211,7 @@ function getBodyData(data: any, type: 'json' | 'form-data') {
 
 function getRxjsOperators(options: HttpResultOptions = {}) {
   const operators: any[] = [];
-  const { valueOnError, pick, mapTo, pipe } = options;
+  const { valueOnError, pick, pipe } = options;
 
   if (pick) {
     operators.push(

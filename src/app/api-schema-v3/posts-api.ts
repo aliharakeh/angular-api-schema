@@ -1,4 +1,5 @@
 import { InjectionToken } from '@angular/core';
+import { map } from 'rxjs';
 import { Post, PostData } from '../app.models';
 import { injectHttpHelpers } from './http-client-utils';
 
@@ -13,8 +14,8 @@ export const PostsApi = new InjectionToken('POSTS_API', {
     return {
       getPosts: GET<PostData | void>({
         ...urlConfig,
-        mapTo: Post,
         valueOnError: [],
+        pipe: [map((data) => new Post(data))],
       })<Post[]>,
       getPostById: GET<{ id: number }>({
         ...urlConfig,
